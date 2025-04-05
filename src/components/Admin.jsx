@@ -28,34 +28,49 @@ const Admin = () => {
     formData.append("paragraph", paragraph);
     if (image) formData.append("image", image);
     formData.append("link", link);
-
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/posts`, {
-      method: "POST",
-      body: formData,
-    });
-    if (response.ok) {
-      fetchPosts();
-      setTitle("");
-      setParagraph("");
-      setImage(null);
-      setLink("");
+  
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/posts`, {
+        method: "POST",
+        body: formData,
+      });
+      const responseData = await response.json();
+      console.log("Post Response:", response.status, responseData);
+      if (response.ok) {
+        fetchPosts();
+        setTitle("");
+        setParagraph("");
+        setImage(null);
+        setLink("");
+      } else {
+        console.error("Post failed:", response.status, responseData);
+        alert(`Failed to post: ${response.status} - ${responseData.error || "Unknown error"}`);
+      }
+    } catch (error) {
+      console.error("Fetch error:", error);
+      alert("Error: " + error.message);
     }
   };
-
+  
   const handleDelete = async (id) => {
-    await fetch(`${import.meta.env.VITE_API_BASE_URL}/posts/${id}`, {
-      method: "DELETE",
-    });
-    fetchPosts();
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/posts/${id}`, {
+        method: "DELETE",
+      });
+      const responseData = await response.json();
+      console.log("Delete Response:", response.status, responseData);
+      if (response.ok) {
+        fetchPosts();
+      } else {
+        console.error("Delete failed:", response.status, responseData);
+        alert("Failed to delete: " + responseData.error || "Unknown error");
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      alert("Error: " + error.message);
+    }
   };
-
-  const handleEdit = (post) => {
-    setTitle(post.title);
-    setParagraph(post.paragraph);
-    setLink(post.link);
-    handleDelete(post.id);
-  };
-
+  
   return (
     <div className="admin-container">
       <h2 className="admin-title">Admin Dashboard</h2>
