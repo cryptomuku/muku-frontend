@@ -62,7 +62,7 @@ const Admin = () => {
   const handleDelete = async (id) => {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 sec timeout
+      const timeoutId = setTimeout(() => controller.abort(), 50000); // 50 sec timeout
   
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/posts/${id}`, {
         method: "DELETE",
@@ -84,7 +84,7 @@ const Admin = () => {
       alert("Error: " + (error.name === "AbortError" ? "Request timed out" : error.message));
     }
   };
-  
+
   return (
     <div className="admin-container">
       <h2 className="admin-title">Admin Dashboard</h2>
