@@ -1,21 +1,21 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom"; // Add this import
+import { useNavigate } from "react-router-dom";
 import "../styles/Navbar.css";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const navigate = useNavigate(); // Hook for navigation
+  const navigate = useNavigate();
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
   const handleHomeClick = () => {
-    navigate("/"); // Redirect to Home page
-    setIsOpen(false); // Close mobile menu if open
+    navigate("/");
+    setIsOpen(false);
   };
 
   const handleLoginClick = () => {
-    navigate("/login"); // Redirect to Login page
-    setIsOpen(false); // Close mobile menu if open
+    navigate("/login");
+    setIsOpen(false);
   };
 
   return (

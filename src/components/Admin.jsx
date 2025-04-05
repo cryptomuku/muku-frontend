@@ -8,6 +8,7 @@ const Admin = () => {
   const [image, setImage] = useState(null);
   const [link, setLink] = useState("");
   const [posts, setPosts] = useState([]);
+  const [editingPostId, setEditingPostId] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -16,9 +17,14 @@ const Admin = () => {
   }, [navigate]);
 
   const fetchPosts = async () => {
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/posts`);
-    const data = await response.json();
-    setPosts(data);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/posts`);
+      if (!response.ok) throw new Error("Failed to fetch posts");
+      const data = await response.json();
+      setPosts(data);
+    } catch (error) {
+      console.error("Fetch posts error:", error);
+    }
   };
 
   const handlePost = async (e) => {
@@ -28,51 +34,58 @@ const Admin = () => {
     formData.append("paragraph", paragraph);
     if (image) formData.append("image", image);
     formData.append("link", link);
-  
+
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 sec timeout
-  
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/posts`, {
-        method: "POST",
-        body: formData,
-        signal: controller.signal,
-      });
-  
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 sec timeout
+
+      const response = await fetch(
+        editingPostId
+          ? `${import.meta.env.VITE_API_BASE_URL}/posts/${editingPostId}`
+          : `${import.meta.env.VITE_API_BASE_URL}/posts`,
+        {
+          method: editingPostId ? "PUT" : "POST",
+          body: formData,
+          signal: controller.signal,
+        }
+      );
+
       clearTimeout(timeoutId);
       const responseData = await response.json();
       console.log("Post Response:", response.status, responseData);
-  
+
       if (response.ok) {
         fetchPosts();
         setTitle("");
         setParagraph("");
         setImage(null);
         setLink("");
+        setEditingPostId(null);
+        alert(editingPostId ? "Post updated successfully!" : "Post created successfully!");
       } else {
         console.error("Post failed:", response.status, responseData);
-        alert(`Failed to post: ${response.status} - ${responseData.error || "Unknown error"}`);
+        alert(`Failed to ${editingPostId ? "update" : "post"}: ${responseData.error || "Unknown error"}`);
       }
     } catch (error) {
       console.error("Fetch error:", error);
       alert("Error: " + (error.name === "AbortError" ? "Request timed out" : error.message));
     }
   };
-  
+
   const handleDelete = async (id) => {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 50000); // 50 sec timeout
-  
+      const timeoutId = setTimeout(() => controller.abort(), 50000);
+
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/posts/${id}`, {
         method: "DELETE",
         signal: controller.signal,
       });
-  
+
       clearTimeout(timeoutId);
       const responseData = await response.json();
       console.log("Delete Response:", response.status, responseData);
-  
+
       if (response.ok) {
         fetchPosts();
       } else {
@@ -83,6 +96,15 @@ const Admin = () => {
       console.error("Delete error:", error);
       alert("Error: " + (error.name === "AbortError" ? "Request timed out" : error.message));
     }
+  };
+
+  const handleEdit = (post) => {
+    setTitle(post.title);
+    setParagraph(post.paragraph);
+    setLink(post.link);
+    setImage(null);
+    setEditingPostId(post.id);
+    handleDelete(post.id);
   };
 
   return (
@@ -115,7 +137,9 @@ const Admin = () => {
           onChange={(e) => setLink(e.target.value)}
           className="admin-input"
         />
-        <button type="submit" className="admin-button">Post</button>
+        <button type="submit" className="admin-button">
+          {editingPostId ? "Update Post" : "Post"}
+        </button>
       </form>
 
       <div className="posts-list">
