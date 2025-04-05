@@ -30,12 +30,19 @@ const Admin = () => {
     formData.append("link", link);
   
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 sec timeout
+  
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/posts`, {
         method: "POST",
         body: formData,
+        signal: controller.signal,
       });
+  
+      clearTimeout(timeoutId);
       const responseData = await response.json();
       console.log("Post Response:", response.status, responseData);
+  
       if (response.ok) {
         fetchPosts();
         setTitle("");
@@ -48,26 +55,33 @@ const Admin = () => {
       }
     } catch (error) {
       console.error("Fetch error:", error);
-      alert("Error: " + error.message);
+      alert("Error: " + (error.name === "AbortError" ? "Request timed out" : error.message));
     }
   };
   
   const handleDelete = async (id) => {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 sec timeout
+  
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/posts/${id}`, {
         method: "DELETE",
+        signal: controller.signal,
       });
+  
+      clearTimeout(timeoutId);
       const responseData = await response.json();
       console.log("Delete Response:", response.status, responseData);
+  
       if (response.ok) {
         fetchPosts();
       } else {
         console.error("Delete failed:", response.status, responseData);
-        alert("Failed to delete: " + responseData.error || "Unknown error");
+        alert(`Failed to delete: ${response.status} - ${responseData.error || "Unknown error"}`);
       }
     } catch (error) {
       console.error("Delete error:", error);
-      alert("Error: " + error.message);
+      alert("Error: " + (error.name === "AbortError" ? "Request timed out" : error.message));
     }
   };
   
